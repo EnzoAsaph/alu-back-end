@@ -1,21 +1,22 @@
 #!/usr/bin/python3
 """Export employee TODO data to CSV format."""
 import csv
-import requests
+import json
 import sys
+import urllib.request
 
 
 if __name__ == "__main__":
     employee_id = int(sys.argv[1])
     base_url = "https://jsonplaceholder.typicode.com"
 
-    user_response = requests.get("{}/users/{}".format(base_url, employee_id))
-    todos_response = requests.get(
-        "{}/todos".format(base_url), params={"userId": employee_id}
-    )
+    with urllib.request.urlopen(
+            "{}/users/{}".format(base_url, employee_id)) as r:
+        user = json.loads(r.read().decode('utf-8'))
 
-    user = user_response.json()
-    todos = todos_response.json()
+    with urllib.request.urlopen(
+            "{}/todos?userId={}".format(base_url, employee_id)) as r:
+        todos = json.loads(r.read().decode('utf-8'))
 
     username = user.get("username")
     filename = "{}.csv".format(employee_id)

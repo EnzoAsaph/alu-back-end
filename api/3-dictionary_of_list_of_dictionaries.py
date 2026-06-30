@@ -1,17 +1,17 @@
 #!/usr/bin/python3
 """Export all employees TODO data to JSON format."""
 import json
-import requests
+import urllib.request
 
 
 if __name__ == "__main__":
     base_url = "https://jsonplaceholder.typicode.com"
 
-    users_response = requests.get("{}/users".format(base_url))
-    todos_response = requests.get("{}/todos".format(base_url))
+    with urllib.request.urlopen("{}/users".format(base_url)) as r:
+        users = json.loads(r.read().decode('utf-8'))
 
-    users = users_response.json()
-    todos = todos_response.json()
+    with urllib.request.urlopen("{}/todos".format(base_url)) as r:
+        todos = json.loads(r.read().decode('utf-8'))
 
     all_tasks = {}
 
