@@ -4,19 +4,15 @@ import json
 import ssl
 import urllib.request
 
+ssl._create_default_https_context = ssl._create_unverified_context
 
 if __name__ == "__main__":
     base_url = "https://jsonplaceholder.typicode.com"
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
 
-    with urllib.request.urlopen(
-            "{}/users".format(base_url), context=ctx) as r:
+    with urllib.request.urlopen("{}/users".format(base_url)) as r:
         users = json.loads(r.read().decode('utf-8'))
 
-    with urllib.request.urlopen(
-            "{}/todos".format(base_url), context=ctx) as r:
+    with urllib.request.urlopen("{}/todos".format(base_url)) as r:
         todos = json.loads(r.read().decode('utf-8'))
 
     all_tasks = {}
