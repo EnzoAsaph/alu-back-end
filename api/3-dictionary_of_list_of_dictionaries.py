@@ -1,34 +1,43 @@
 #!/usr/bin/python3
-"""Export all employees TODO data to JSON format."""
+"""
+Export all employees TODO data to JSON format
+from https://jsonplaceholder.typicode.com
+"""
 import json
-import ssl
-import urllib.request
+import requests
 
-ssl._create_default_https_context = ssl._create_unverified_context
 
-if __name__ == "__main__":
+def main():
+    """Main function to export all employees TODO data to JSON."""
     base_url = "https://jsonplaceholder.typicode.com"
 
-    with urllib.request.urlopen("{}/users".format(base_url)) as r:
-        users = json.loads(r.read().decode('utf-8'))
+    users_resp = requests.get("{}/users".format(base_url))
+    users = users_resp.json()
 
-    with urllib.request.urlopen("{}/todos".format(base_url)) as r:
-        todos = json.loads(r.read().decode('utf-8'))
+    todos_resp = requests.get("{}/todos".format(base_url))
+    todos = todos_resp.json()
+
+    user_map = {}
+    for user in users:
+        user_map[user.get("id")] = user.get("username")
 
     all_tasks = {}
+    for task in todos:
+        user_id = task.get("userId")
+        user_id_str = str(user_id)
 
-    for user in users:
-        user_id = str(user.get("id"))
-        username = user.get("username")
-        user_tasks = [
-            {
-                "username": username,
-                "task": task.get("title"),
-                "completed": task.get("completed")
-            }
-            for task in todos if task.get("userId") == user.get("id")
-        ]
-        all_tasks[user_id] = user_tasks
+        if user_id_str not in all_tasks:
+            all_tasks[user_id_str] = []
 
-    with open("todo_all_employees.json", mode="w") as json_file:
-        json.dump(all_tasks, json_file)
+        all_tasks[user_id_str].append({
+            "username": user_map[user_id],
+            "task": task.get("title"),
+            "completed": task.get("completed")
+        })
+
+    with open("todo_all_employees.json", mode="w", encoding="utf-8") as f:
+        json.dump(all_tasks, f)
+
+
+if __name__ == "__main__":
+    main()

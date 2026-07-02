@@ -1,32 +1,35 @@
 #!/usr/bin/python3
-"""Gather data from an API and display employee TODO list progress."""
-import json
-import ssl
+"""
+Fetch and display an employee's TODO list progress
+from https://jsonplaceholder.typicode.com
+"""
+import requests
 import sys
-import urllib.request
 
-ssl._create_default_https_context = ssl._create_unverified_context
 
-if __name__ == "__main__":
+def main():
+    """Main function to gather and display employee TODO progress."""
     employee_id = int(sys.argv[1])
     base_url = "https://jsonplaceholder.typicode.com"
 
-    with urllib.request.urlopen(
-            "{}/users/{}".format(base_url, employee_id)) as r:
-        user = json.loads(r.read().decode('utf-8'))
-
-    with urllib.request.urlopen(
-            "{}/todos?userId={}".format(base_url, employee_id)) as r:
-        todos = json.loads(r.read().decode('utf-8'))
-
+    user_resp = requests.get("{}/users/{}".format(base_url, employee_id))
+    user = user_resp.json()
     employee_name = user.get("name")
-    done_tasks = [task for task in todos if task.get("completed")]
+
+    todos_resp = requests.get(
+        "{}/todos".format(base_url), params={"userId": employee_id})
+    todos = todos_resp.json()
+
     total_tasks = len(todos)
-    number_of_done_tasks = len(done_tasks)
+    completed_tasks = [t for t in todos if t.get("completed") is True]
+    done_tasks = len(completed_tasks)
 
     print("Employee {} is done with tasks({}/{}):".format(
-        employee_name, number_of_done_tasks, total_tasks
-    ))
+        employee_name, done_tasks, total_tasks))
 
-    for task in done_tasks:
+    for task in completed_tasks:
         print("\t {}".format(task.get("title")))
+
+
+if __name__ == "__main__":
+    main()

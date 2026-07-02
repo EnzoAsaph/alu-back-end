@@ -1,34 +1,38 @@
 #!/usr/bin/python3
-"""Export employee TODO data to CSV format."""
+"""
+Export employee TODO data to CSV format
+from https://jsonplaceholder.typicode.com
+"""
 import csv
-import json
-import ssl
+import requests
 import sys
-import urllib.request
 
-ssl._create_default_https_context = ssl._create_unverified_context
 
-if __name__ == "__main__":
+def main():
+    """Main function to export employee TODO data to CSV."""
     employee_id = int(sys.argv[1])
     base_url = "https://jsonplaceholder.typicode.com"
 
-    with urllib.request.urlopen(
-            "{}/users/{}".format(base_url, employee_id)) as r:
-        user = json.loads(r.read().decode('utf-8'))
-
-    with urllib.request.urlopen(
-            "{}/todos?userId={}".format(base_url, employee_id)) as r:
-        todos = json.loads(r.read().decode('utf-8'))
-
+    user_resp = requests.get("{}/users/{}".format(base_url, employee_id))
+    user = user_resp.json()
+    user_id = user.get("id")
     username = user.get("username")
-    filename = "{}.csv".format(employee_id)
 
-    with open(filename, mode="w", newline="") as csv_file:
-        writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+    todos_resp = requests.get(
+        "{}/todos".format(base_url), params={"userId": employee_id})
+    todos = todos_resp.json()
+
+    filename = "{}.csv".format(user_id)
+    with open(filename, mode="w", newline="", encoding="utf-8") as csvfile:
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
         for task in todos:
             writer.writerow([
-                employee_id,
+                user_id,
                 username,
                 task.get("completed"),
                 task.get("title")
             ])
+
+
+if __name__ == "__main__":
+    main()
